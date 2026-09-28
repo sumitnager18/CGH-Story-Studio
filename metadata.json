@@ -1,0 +1,6 @@
+{
+  "name": "CGH Story Studio",
+  "description": "Story-first AI animation production hub: turn scripts and master narration into scene-by-scene animated videos with procedural storyboarding workflow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
