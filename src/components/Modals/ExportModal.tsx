@@ -283,7 +283,6 @@ Generated with CGH Story Studio Prototype.
                 <span>Export OTIO</span>
               </button>
 
-            <>
               <button
                 onClick={() => setActiveModal(null)}
                 className="px-3 py-1.5 rounded-lg bg-[#22222a] hover:bg-[#2c2c36] text-slate-300 text-xs transition-colors"
