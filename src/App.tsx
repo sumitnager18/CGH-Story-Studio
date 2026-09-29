@@ -18,9 +18,10 @@ import { KeyboardShortcutsModal } from './components/Modals/KeyboardShortcutsMod
 import { HistoryDrawer } from './components/Modals/HistoryDrawer';
 import { AssetLibraryModal } from './components/Modals/AssetLibraryModal';
 import { LocalAssetVaultModal } from './components/Modals/LocalAssetVaultModal';
+import { ComponentManagerModal } from './components/Modals/ComponentManagerModal';
 
 const StudioWorkspace: React.FC = () => {
-  const { activeModal } = useStudio();
+  const { activeModal, setActiveModal } = useStudio();
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#121215] text-slate-100 font-sans">
@@ -48,6 +49,7 @@ const StudioWorkspace: React.FC = () => {
       {/* Global Modals */}
       {activeModal === 'asset-library' && <AssetLibraryModal />}
       {activeModal === 'local-asset-vault' && <LocalAssetVaultModal />}
+      {activeModal === 'components' && <ComponentManagerModal onClose={() => setActiveModal(null)} />}
       {activeModal === 'generate-visual' && <GenerateVisualModal />}
       {activeModal === 'export' && <ExportModal />}
       {activeModal === 'projects' && <ProjectManagerModal />}
