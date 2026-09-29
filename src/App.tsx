@@ -17,6 +17,7 @@ import { CharacterEditModal } from './components/Modals/CharacterEditModal';
 import { KeyboardShortcutsModal } from './components/Modals/KeyboardShortcutsModal';
 import { HistoryDrawer } from './components/Modals/HistoryDrawer';
 import { AssetLibraryModal } from './components/Modals/AssetLibraryModal';
+import { LocalAssetVaultModal } from './components/Modals/LocalAssetVaultModal';
 
 const StudioWorkspace: React.FC = () => {
   const { activeModal } = useStudio();
@@ -46,6 +47,7 @@ const StudioWorkspace: React.FC = () => {
 
       {/* Global Modals */}
       {activeModal === 'asset-library' && <AssetLibraryModal />}
+      {activeModal === 'local-asset-vault' && <LocalAssetVaultModal />}
       {activeModal === 'generate-visual' && <GenerateVisualModal />}
       {activeModal === 'export' && <ExportModal />}
       {activeModal === 'projects' && <ProjectManagerModal />}
