@@ -34,7 +34,8 @@ export const AssetsTab: React.FC = () => {
     applyAssetToScene,
     addLibraryCharacterToProject,
     addLibraryAudioToTimeline,
-    applyPoseToScene
+    applyPoseToScene,
+    setActiveModal
   } = useStudio();
 
   // Sub-tab: 'vault' (11,150+ CGH Procedural Prototype Assets) vs 'project-audio' (Narration & Media)
@@ -152,7 +153,7 @@ export const AssetsTab: React.FC = () => {
               Explore 246 families: 2,500 characters, 3,200 environments, 1,800 poses, visemes, props & audio.
             </p>
             <button
-              onClick={() => useStudio().setActiveModal('local-asset-vault')}
+              onClick={() => setActiveModal('local-asset-vault')}
               className="w-full py-1.5 bg-[#1d2924] hover:bg-[#263b32] text-emerald-300 font-semibold rounded-lg text-xs border border-emerald-700/40 flex items-center justify-center gap-1.5"
             >
               <HardDrive className="w-3.5 h-3.5" />
