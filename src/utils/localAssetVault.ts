@@ -1,4 +1,5 @@
 export type LocalAssetType = 'video' | 'image' | 'audio' | 'model' | 'other';
+export type CommercialStatus = 'verified' | 'review' | 'not-for-redistribution';
 
 export interface LocalAsset {
   id: string;
@@ -9,21 +10,35 @@ export interface LocalAsset {
   size: number;
   modified: number;
   source: 'local';
+  sourceName: string;
   license: string;
-  commercialUse: 'yes' | 'review';
+  licenseUrl?: string;
+  commercialUse: CommercialStatus;
+  attribution?: string;
   tags: string[];
+  favorite?: boolean;
+  collection?: string;
+}
+
+interface VaultState {
+  id: 'root';
+  rootName: string;
+  rootHandle?: any;
+  lastScan: number;
 }
 
 const DB_NAME = 'cgh-local-asset-vault';
-const STORE = 'assets';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+const ASSETS = 'assets';
+const STATE = 'state';
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(ASSETS)) db.createObjectStore(ASSETS, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(STATE)) db.createObjectStore(STATE, { keyPath: 'id' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -39,9 +54,25 @@ export function classifyFile(name: string): LocalAssetType {
   return 'other';
 }
 
-export async function scanVault(root: FileSystemDirectoryHandle, onProgress?: (count:number)=>void): Promise<LocalAsset[]> {
+function tagsFor(path: string): string[] {
+  return [...new Set(path.toLowerCase().split(/[\\/._ -]+/).filter(Boolean))].slice(0, 40);
+}
+
+export async function scanVault(
+  root: any,
+  options?: {
+    sourceName?: string;
+    license?: string;
+    licenseUrl?: string;
+    commercialUse?: CommercialStatus;
+    attribution?: string;
+    onProgress?: (count:number, current:string)=>void;
+  }
+): Promise<LocalAsset[]> {
   const found: LocalAsset[] = [];
-  async function walk(dir: FileSystemDirectoryHandle, prefix='') {
+  const sourceName = options?.sourceName || root.name || 'Local Vault';
+
+  async function walk(dir: any, prefix='') {
     for await (const [name, handle] of dir.entries()) {
       const relative = prefix ? prefix + '/' + name : name;
       if (handle.kind === 'directory') await walk(handle, relative);
@@ -50,47 +81,86 @@ export async function scanVault(root: FileSystemDirectoryHandle, onProgress?: (c
         const type = classifyFile(name);
         if (type === 'other') continue;
         found.push({
-          id: `${relative}:${file.size}:${file.lastModified}`,
+          id: btoa(unescape(encodeURIComponent(relative))).replace(/[^a-zA-Z0-9]/g,'').slice(0,80) + '-' + file.size,
           name, path: relative, type,
           extension: name.split('.').pop()?.toLowerCase() || '',
           size: file.size, modified: file.lastModified,
           source: 'local',
-          license: 'LOCAL — verify source license',
-          commercialUse: 'review',
-          tags: relative.toLowerCase().split(/[\\/._ -]+/).filter(Boolean).slice(0, 20)
+          sourceName,
+          license: options?.license || 'LOCAL — verify original source license',
+          licenseUrl: options?.licenseUrl,
+          commercialUse: options?.commercialUse || 'review',
+          attribution: options?.attribution,
+          tags: tagsFor(relative)
         });
-        onProgress?.(found.length);
+        options?.onProgress?.(found.length, relative);
       }
     }
   }
+
   await walk(root);
   const db = await openDb();
-  const tx = db.transaction(STORE, 'readwrite');
-  const store = tx.objectStore(STORE);
+  const tx = db.transaction(ASSETS, 'readwrite');
+  const store = tx.objectStore(ASSETS);
+  store.clear();
   for (const asset of found) store.put(asset);
   await new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+
+  const stateDb = db.transaction(STATE, 'readwrite').objectStore(STATE);
+  stateDb.put({ id:'root', rootName: root.name || 'Local Vault', rootHandle: root, lastScan: Date.now() });
   return found;
 }
 
 export async function loadAssets(): Promise<LocalAsset[]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+    const req = db.transaction(ASSETS, 'readonly').objectStore(ASSETS).getAll();
     req.onsuccess = () => resolve(req.result as LocalAsset[]);
     req.onerror = () => reject(req.error);
   });
 }
 
-export async function clearAssets(): Promise<void> {
+export async function loadVaultState(): Promise<VaultState | null> {
   const db = await openDb();
-  await new Promise<void>((resolve, reject) => {
-    const req = db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
-    req.onsuccess = () => resolve();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STATE, 'readonly').objectStore(STATE).get('root');
+    req.onsuccess = () => resolve((req.result as VaultState) || null);
     req.onerror = () => reject(req.error);
   });
+}
+
+export async function updateAsset(id:string, patch:Partial<LocalAsset>):Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction(ASSETS, 'readwrite');
+  const store = tx.objectStore(ASSETS);
+  const req = store.get(id);
+  await new Promise<void>((resolve,reject)=>{
+    req.onsuccess=()=>{ if(req.result) store.put({...req.result,...patch}); resolve(); };
+    req.onerror=()=>reject(req.error);
+  });
+}
+
+export async function clearAssets(): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction([ASSETS, STATE], 'readwrite');
+  tx.objectStore(ASSETS).clear();
+  tx.objectStore(STATE).clear();
+  await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});
+}
+
+export async function getLocalFile(asset: LocalAsset): Promise<File | null> {
+  const state = await loadVaultState();
+  if (!state?.rootHandle) return null;
+  let current = state.rootHandle;
+  for (const part of asset.path.split('/')) {
+    current = part === asset.name
+      ? await current.getFileHandle(part)
+      : await current.getDirectoryHandle(part);
+  }
+  return current.getFile();
 }
 
 export function supportsLocalVault(): boolean {
