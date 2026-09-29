@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   Move,
   User,
-  Image as ImageIcon
+  Image as ImageIcon,
+  HardDrive
 } from 'lucide-react';
 import { useStudio } from '../../context/StudioContext';
 import { studioAudio } from '../../utils/mockAudio';
@@ -150,6 +151,13 @@ export const AssetsTab: React.FC = () => {
             <p className="text-[11px] text-slate-300 leading-relaxed">
               Explore 246 families: 2,500 characters, 3,200 environments, 1,800 poses, visemes, props & audio.
             </p>
+            <button
+              onClick={() => useStudio().setActiveModal('local-asset-vault')}
+              className="w-full py-1.5 bg-[#1d2924] hover:bg-[#263b32] text-emerald-300 font-semibold rounded-lg text-xs border border-emerald-700/40 flex items-center justify-center gap-1.5"
+            >
+              <HardDrive className="w-3.5 h-3.5" />
+              Open Offline Local Vault
+            </button>
             <button
               onClick={() => openAssetLibrary()}
               className="w-full py-1.5 bg-[#6c5ce7] hover:bg-[#5849d4] text-white font-semibold rounded-lg text-xs shadow-md shadow-[#6c5ce7]/30 flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01]"
