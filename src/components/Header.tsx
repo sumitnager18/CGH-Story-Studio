@@ -14,6 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
+import { HardDrive } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const {
@@ -132,6 +133,15 @@ export const Header: React.FC = () => {
           <span className="text-[9px] bg-[#6c5ce7] text-white px-1.5 py-0.2 rounded font-mono font-bold">
             VAULT
           </span>
+        </button>
+
+        <button
+          onClick={() => setActiveModal('local-asset-vault')}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-[#1e1e24] hover:bg-[#282832] border border-[#2e2e38] text-slate-200 transition-colors"
+          title="Open the local offline asset vault"
+        >
+          <HardDrive className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="hidden lg:inline">Offline Vault</span>
         </button>
 
         {/* Saved indicator */}
