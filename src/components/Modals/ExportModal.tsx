@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Download, Film, CheckCircle2, Loader2, Sparkles, FileText, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useStudio } from '../../context/StudioContext';
+import { downloadOpenTimelineIO } from '../../integrations/openTimelineIO';
 
 export const ExportModal: React.FC = () => {
   const { project, setActiveModal } = useStudio();
@@ -48,6 +49,12 @@ export const ExportModal: React.FC = () => {
         setCurrentFrame(Math.floor((p / 100) * totalFrames));
       }
     }, 120);
+  };
+
+  const handleExportOTIO = () => {
+    downloadOpenTimelineIO(project, {
+      mediaResolver: (clip) => clip.sourceUri
+    });
   };
 
   const handleDownload = () => {
@@ -266,6 +273,16 @@ Generated with CGH Story Studio Prototype.
           )}
 
           {isCompleted && (
+            <>
+              <button
+                onClick={handleExportOTIO}
+                className="px-3 py-1.5 rounded-lg bg-[#22222a] hover:bg-[#2c2c36] text-cyan-300 text-xs font-semibold border border-cyan-500/20 flex items-center gap-1.5"
+                title="Export the editorial timeline for OpenTimelineIO-compatible tools"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Export OTIO</span>
+              </button>
+
             <>
               <button
                 onClick={() => setActiveModal(null)}
