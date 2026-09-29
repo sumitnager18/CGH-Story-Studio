@@ -87,6 +87,10 @@ export interface TimelineClip {
   fadeOut: number; // in seconds
   color?: string;
   waveform?: number[]; // for audio tracks
+  /** Open-source interchange/media reference metadata. */
+  sourceKind?: 'generated' | 'library' | 'local' | 'external';
+  localAssetId?: string;
+  sourceUri?: string;
 }
 
 export type AIJobType = 'image' | 'video' | 'lip-sync' | 'audio-split';
