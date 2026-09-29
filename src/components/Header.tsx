@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
-import { HardDrive } from 'lucide-react';
+import { HardDrive, Wrench } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const {
@@ -142,6 +142,15 @@ export const Header: React.FC = () => {
         >
           <HardDrive className="w-3.5 h-3.5 text-emerald-400" />
           <span className="hidden lg:inline">Offline Vault</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModal('components')}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-[#1e1e24] hover:bg-[#282832] border border-[#2e2e38] text-slate-200 transition-colors"
+          title="Manage optional native engines"
+        >
+          <Wrench className="w-3.5 h-3.5 text-cyan-300" />
+          <span className="hidden lg:inline">Components</span>
         </button>
 
         {/* Saved indicator */}
